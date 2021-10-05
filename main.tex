@@ -6,7 +6,7 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage[colorlinks, linkcolor=cyan]{hyperref}
-\usepackage{titlesec}
+
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
@@ -16,40 +16,36 @@
 \rfoot{Page \thepage}
 
 
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
-\newtheorem{algorithm}{Algorithm}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{algorithm}{Algorithm}[section]
 
 
 \setlength\parindent{0em}
 
 \begin{document}%
-  \vspace*{3em}
-  \centerline{\huge\bfseries Linear Bandits}
+  \vspace*{2em}
   \begin{center}
+    {\huge\bfseries Linear Bandits}\vskip1em\par
     Matthew Nazari \hspace{1em} Moni Radev\par
-    \texttt{%
-    \{%
-    \href{mailto:matthewnazari@college.harvard.edu}{matthewnazari},%
-    \href{mailto:sradev@college.harvard.edu}{sradev}%
-    \}%
-    @college.harvard.edu}\vspace{5em}\par
+    \{\texttt{\href{mailto:matthewnazari@college.harvard.edu}{matthewnazari},\href{mailto:sradev@college.harvard.edu}{sradev}}\}%
+    \texttt{@college.harvard.edu}\vskip5em\par
   \end{center}
   
   \section{Online Learning with Experts} % Motivations from Chapter 7 and Chapter 5 stuff
-  \begin{definition}[full-feedback]
+  \begin{definition}[full feedback]
     In this context, all costs are revealed at the end of every round $t$.
   \end{definition}
 
   \begin{definition}[experts]
-    In a full-feedback setting, instead of $K$ arms each corresponding to an action, we have $K$ experts who each predict one of $L$ labels. In the case of binary prediction, expert $e_i$ recommends a binary label: $z_{i,t} \in \{0, 1\}$.
+    In a full feedback setting, instead of $K$ arms each corresponding to an action, we have $K$ experts who each predict one of $L$ labels. In the case of binary prediction, expert $e_i$ recommends a binary label: $z_{i,t} \in \{0, 1\}$.
   \end{definition}
 
   For a problem with $K$ experts and $T$ rounds, consider the cost table $(\, c_t(a) : a \in [K], t \in [T] \,)$. Imagine that costs are decided by some adversary, there are three types of costs:
   \begin{itemize}
-    \item \textbf{Deterministic, oblivious adversary}: The cost table is chosen and fixed before round 1. The adversary chooses costs independent of our actions. Here, \[ \text{Regret}(T) = \text{cost}(ALG) - \min_{a \in [K]} \text{cost}(a) \footnote{$\text{cost}(a) := \sum_{t \in [T]} c_t(a)$}. \]
-    \item \textbf{Randomized oblivious adversary}: The cost table is drawn from a random distribution of cost tables before round 1. If we measure the best arm \emph{in foresight} instead of \emph{in hindsight}, we get \[ \text{Regret}(T) = \text{cost}(ALG) - \min_{a \in [K]} \mathbb{E}[ \text{cost}(a) ]. \]
+    \item \textbf{Deterministic, oblivious adversary}: The cost table is chosen and fixed before round 1. The adversary chooses costs independent of our actions. Here, \[ \textrm{Regret}(T) = \textrm{cost}(ALG) - \min_{a \in [K]} \textrm{cost}(a) \footnote{$\textrm{cost}(a) := \sum_{t \in [T]} c_t(a)$}. \]
+    \item \textbf{Randomized oblivious adversary}: The cost table is drawn from a random distribution of cost tables before round 1. If we measure the best arm \emph{in foresight} instead of \emph{in hindsight}, we get \[ \textrm{Regret}(T) = \textrm{cost}(ALG) - \min_{a \in [K]} \mathbb{E}[ \textrm{cost}(a) ]. \]
     \item \textbf{Adaptive adversary}: Costs change depending on the algorithm's past choices. This models scenarios where our choices alter the environment that we operate in. We study regret in terms of the \emph{best-observed arm}, which may not always be satisfactory but is worth studying for specific situations where our actions do not substantially affect the total cost of the best arm.
   \end{itemize}
 
@@ -68,7 +64,7 @@
   \end{algorithm}
 
   \begin{theorem}
-    The number of mistakes WMA makes with $\epsilon \in (0, 1)$ is at most \[ \frac{2}{1 - \epsilon} \text{\emph{cost}}^* + \frac{2}{\epsilon} \log K. \]
+    The number of mistakes WMA makes with $\epsilon \in (0, 1)$ is at most \[ \frac{2}{1 - \epsilon} \textrm{\emph{cost}}^* + \frac{2}{\epsilon} \log K. \]
   \end{theorem}
 
   However, any deterministic algorithm has total cost $T$ for some deterministic, oblivious adversary. The adversary knows and can rig costs to hurt the algorithm. Therefore, we define a randomized algorithm.
@@ -77,118 +73,76 @@
     Given a parameter $\epsilon \in (0, \frac{1}{2})$, initialize confidence weights as in WMA. At each round $t$ sample an arm from $p_t(a)$ where \[ p_t(a) := \frac{w_{a, t}}{\sum_{a'=1}^{K} w_{a', t}}. \] Observe the cost $c_t(a) \in \{0, 1\}$ and update each arm's weight $w_{a,t+1} \leftarrow w_{a,t}(1 - \epsilon)^{c_t(a)}$.
   \end{algorithm}
     
-  \section*{Reduction to the Bandit Problem} % Chapter 6 content
-  Idea is to use the Hedge algorithm. This requires us to determine two things: a \emph{selection rule} for using expert $e_t$ to ick arm $a_t$, and defining "fake costs" $\widehat{c_t}(e)$ for all experts.
+  \section{Online Routing Problem}  
+  In ``linear bandits,'' an action is a low-dimensional vector and the costs that round are linear. The cost at any round $t$ for an action $a \in \mathbb R^d$ is $c_t(a) := a \cdot v_t$ where $v_t \in \mathbb R^d$ differs per round but not per arm. \vskip1em
 
-  \section{Online Routing Problem}
+  In full feedback setting, use Hedge Algorithm with parameter $\epsilon = 1/\sqrt{dT}$ to achieve regret $\mathbb E[ \text{Regret}(T)] \leq O(d \sqrt{dT})$. \vskip1em
+
+  In this problem, different feedbacks are
+  \begin{itemize}
+    \item \textbf{bandit feedback}: only cost $c_t(a_t)$ is observed;
+    \item \textbf{semi-bandit feedback}: costs $c_t(e)$ for all $e \in a_t$ are observed;
+    \item \textbf{full feedback}: costs $c_t(e)$ for all edges are observed.
+  \end{itemize}
+
+  Reduction to the Bandit Problem: Idea is to use the Hedge algorithm. This requires us to determine two things: a \emph{selection rule} for using expert $e_t$ to ick arm $a_t$, and defining "fake costs" $\widehat{c}_t(e)$ for all experts.
+
+  Explore by choosing edge $e$ uniformly at random. 
+  \begin{algorithm}[Semi-Bandit Hedge Algorithm]
+    With our reduction from the Hedge Algorithm to the bandit problem, select an edge $e$ randomly at uniform with probability $\gamma$. Choose a path that includes this edge and define fake costs as follows: \[ \widehat{c}_{t}(e)= \begin{cases}\frac{c_{t}(e)}{\gamma / d} & \text { if event } \Lambda_{t, e} \text { happens } \\ 0 & \text { otherwise }\end{cases} \] where $\Lambda_{t, e}$ is the event that in round $t$, we choose random exploration and edge $e$ to explore.
+  \end{algorithm}
+
+  We want fake costs to be unbiased estimates of true costs, so that \[ \mathbb{E} \left[ \widehat{\textrm{Regret}}_\text{Hedge} \right] \geq \mathbb{E} \left[ \textrm{Regret}_\text{Hedge}(T)  \right]. \]
 
   \section{Combinatorial Semi-Bandits}
+  Replace edges with $d$ ``atoms,'' and $u-v$ paths with feasible subsets $a \in \mathcal F$ of atoms $S$.
+
+  Notable special cases include
+  \begin{itemize}
+    \item \emph{news articles}: a site can only select a subset of articles to display. A user can either click or ignore on each article, and feasible subsets represent various constraints on articles.
+    \item \emph{advertisements}: a website can only display a subset of ads to each user, and the website recieves payment if the user clicks and even which type of user clicks. 
+  \end{itemize}
+
+  The largest challenge of solving bandit feedback version is estimating fake costs for all atoms in the chosen action. 
 
   \section{Follow Perturbed Leader}
+  Back to the full-feedback setting where we have any fixed arbitrary subset $\mathcal A \subset [0, 1]^d$ of feasible actions. We incur a cost $c_t(a) = v_t \cdot a$ and observe $v_t$ after every round.
 
-  \section{Literature Review}
+  \begin{definition}[optimization oracle]
+    A subroutine which computes the best action for a given cost vector: $M(v) \in \textrm{argmin}_{a \in \mathcal A} \; a \cdot v$.
+  \end{definition}
+
+  \begin{algorithm}[Follow the Leader]
+    Choose the action $a_{t+1} = M(v_{1:t})$  where $v_{i:j} = \sum_{t=i}^j v_t \in \mathbb R^d$.
+  \end{algorithm}
+
+  Follow the Leader breaks when adversarial costs can synchronize its costs to harm the algorithm: the total cost for any deterministic algorithm is again T. Consider
+
+  \[
+  \begin{align*}
+    \mathcal A &= \{ (1, 0), (0, 1) \} \\
+    v_1 &= (\frac{1}{3}, \frac{2}{3}) \\
+    v_t &= \begin{cases}
+      (1, 0) & \text{if $t$ is even}, \\
+      (0, 1) & \text{if $t$ is odd}.
+    \end{cases}
+  \end{align*}  
+  \]
+
+  Then
+  \[
+    v_{1:t} = \begin{cases}
+      (i + \frac{1}{3}, i - \frac{1}{3}) & \text{if $t = 2i$}, \\
+      (i + \frac{1}{3}, i + \frac{2}{3}) & \text{if $t = 2i + 1$}.
+    \end{cases}
+  \]
+
+  \begin{algorithm}[Follow the Perturbed Leader, FPL]
+    Pretend there was a 0-th round, with $v_0 \in \mathbb R^d \sim \mathcal D$.
+  \end{algorithm}
+
+  \begin{theorem}
+    Assume $v_t \in [0, U/d]^d$ for some known parameter $U$. Then FPL achieves regret \[ \mathbb E [\textrm{Regret}(T)] \leq 2U\sqrt{dT} \] with running time in each round polynomial in $d$ plus one call to the oracle.
+  \end{theorem}
 
 \end{document}
-
-
-
-
-% \documentclass[centertitle]{notes}
-% \usepackage{lipsum}
-
-% \coursetitle{An Introduction to Advanced Topics}
-% \subtitle{Lecture Notes}
-% \coursecode{am224}
-% \professor{Khabib Nurmagomedov\thanks{Let's talk now.}}
-% \scribe{
-%   Matthew Nazari\titlehref[mailto:matthewnazari@college.harvard.edu]{matthewnazari@college}[email]
-%   \and
-%   Bella Tarantino\titlehref[mailto:bellatarantino@college.harvard.edu]{bellatarantino@college}[email]
-% }
-% \place{Harvard University}
-% \flag{This is a example document. Ut lorem lorem, interdum eu, tincidunt sit amet, laoreet vitae, arcu.}
-% \date{31}{2}{2024}
-
-% \begin{document}
-
-
-%   \section{Introduction}
-%   \lipsum[1]
-%   \marginpar{Ut lorem lorem, interdum eu, tincidunt sit amet, laoreet vitae, arcu. Aenean faucibus pede eu ante.}
-%   \lipsum[2]
-%   \subsection{This is a subsection}
-%   \lipsum[3]
-%   \begin{marginfig}[Nunc elementum fermentum wisi. Aenean placerat\protect\footnotemark]
-%     \begin{tikzpicture}[main/.style = {draw, circle}]
-%       \node[main] (1) {$x_1$};
-%       \node[main] (2) [above right of=1] {$x_2$};
-%       \node[main] (3) [below right of=1] {$x_3$}; 
-%       \node[main] (4) [above right of=3] {$x_4$};
-%     \end{tikzpicture}
-%   \end{marginfig}
-%   \footnotetext{Donec eu purus.Quisque vehicula, urna sed ultricies auctor.}
-%   \lipsum[4-5]
-%   \begin{definition}[statistical model]
-%     A {\italics statistical model} is a family of probability distributions indexed by a parameter $\theta \in \Theta$ where $\Theta$, the {\italics parameter space}, is the set of all allowable parameter values.
-%   \end{definition}
-%   \lipsum[6]
-%   \marginpar{Suspendisse vel felis. Ut lorem lorem, interdum eu, tincidunt sit amet, laoreet vitae, arcu.Aenean faucibus pede eu ante.}
-%   \subsection{Still introducting things}
-%   \lipsum[7]
-
-
-%   \section{A continuation}
-%   \lipsum[8]
-%   \begin{proposition}
-%     It is given that if $\E[\theta]$ exists, then $\MSE(\hat\theta) = \E[\hat\theta - \theta]^2$.
-%   \end{proposition}
-%   \begin{theorem}[Theorem]
-%     The mean square error of an estimator $\hat\theta$ is the variance plus the square of the bias: $$\MSE(\hat\theta) = \Var(\hat\theta) + (\bias(\hat\theta))^2.$$
-%   \end{theorem}
-%   \begin{proof} This theorem directly follows from the definition of variance:
-%     \begin{align*}
-%       \MSE(\hat\theta) &= \E[\hat\theta - \theta]^2 \\
-%                        &= \Var(\hat\theta - \theta) + (\E[\hat\theta - \theta])^2 \\
-%                        &= \Var(\hat\theta - \theta) + (\E[\hat\theta] - \theta)^2 \\
-%                        &= \Var(\hat\theta) + (\bias(\hat\theta))^2.
-%     \end{align*}
-%   \end{proof}
-%   \marginpar[2em]{\it{Caution.} Nulla facilisi. Pellentesque eget lectus. Proin eu metus. Sed porttitor.}
-%   \lipsum[9]\footnote{Nulla facilisi. Pellentesque eget lectus. Proin eu metus. Sed porttitor.}
-%   \begin{example}[This is an example]
-%     The family of all normal distributions, $\{\N(\mu, \sigma^2) : \mu \in \R, \sigma > 0\}$, is a 2-dimensional parametric model where $\Theta = \{\theta : \theta \in \R \times \R^+\}$. But models don't have to be named distributions. Suppose we have a population of cats and dogs, and we are studying the weight $Y$ of a random animal from the population. Let $p$ be the proportion of cats in the population. Suppose the weight of a random cat and a random dog is $\N(\mu_1, {\sigma_1}^2)$ and $\N(\mu_2, {\sigma_2}^2)$ respectively. Then by the LOTP, the CDF of $Y$ is 
-%     \begin{align*}
-%       F_Y(y) = P(Y \leq y) &= P(Y \leq y \mid \t{cat})P(\t{cat}) + P(Y \leq y \mid \t{dog})P(\t{dog}) \\
-%                           &= p\,\Phi(\frac{y - \mu_1}{\sigma_1}) + (1-p)\,\Phi(\frac{y - \mu_2}{\sigma_2}).
-%     \end{align*}
-%     The CDF of $Y$ depends on the parameter $\theta = (p, \mu_1, \sigma_1, \mu_2, \sigma_2)$, so we write it as as $F_Y(y \mid \theta)$. Our model, therefore, is the collection of all CDFs $F_Y(y \mid \theta)$ indexed by $\theta \in \Theta =\{\theta : \theta \in [0, 1] \times \R \times \R^+ \times \R \times \R^+\}$. This is a 5-dimensional parametric model.
-%   \end{example}
-%   \lipsum[10]
-%   \begin{note}
-%     liquam vestibulum fringilla lorem. Sed neque lectus, consectetuerat, consectetuer sed, eleifend ac, lectus. Nulla facilisi. Pellentesque eget lectus. Proin eu metus.Sed porttitor. In hac habitasse platea dictumst. Suspendisse eu lectus. Ut mi mi, lacinia sit amet, placerat et.
-%   \end{note}
-%   \lipsum[11]
-%   \begin{fig}[Ut lorem lorem, interdum eu, tincidunt sit amet, laoreet vitae, arcu. Aenean faucibus pede eu ante. Amet, laoreet vitae, arcu.]%
-%     \begin{tikzpicture}[main/.style = {draw, circle}]
-%       \node[main] (1) {$x_1$};
-%       \node[main] (2) [above right of=1] {$x_2$};
-%       \node[main] (3) [below right of=1] {$x_3$}; 
-%       \node[main] (4) [above right of=3] {$x_4$};
-%     \end{tikzpicture}
-%   \end{fig}
-%   \lipsum[12-13]
-%   \subsection{Planets, moons, and stars}
-%   \lipsum[14]
-%   \begin{remark}
-%     Etiam euismod. Fusce facilisis lacinia dui. Suspendisse potenti. In mi erat, cursus id, nonummy sed, ullamcorper eget, sapien.
-%   \end{remark}
-%   \lipsum[14]
-
-
-%   \section{A Final Section}
-%   \lipsum[15]
-%   \subsection{Closing Remarks}
-%   \lipsum[16]
-
-  
-% \end{document}
